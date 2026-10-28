@@ -1,50 +1,35 @@
 @extends('layouts.app')
 
 @section('title', 'Riwayat Transaksi')
-@section('page_title', 'Riwayat Mutasi Transaksi Stok')
+@section('page_title', 'Riwayat Transaksi')
 
 @section('content')
 <div class="card">
     <div class="card-header">
-        <div>
-            <h3 class="card-title">
-                Riwayat Transaksi Stok
-                @if(!Auth::user()->isAdmin())
-                <span style="font-size: 0.85rem; font-weight: normal; color: #64748b;">(Menampilkan transaksi yang Anda catat)</span>
-                @else
-                <span style="font-size: 0.85rem; font-weight: normal; color: #64748b;">(Semua transaksi gudang)</span>
-                @endif
-            </h3>
-            <span class="card-subtitle">Pencatatan pergerakan barang masuk dan barang keluar secara akurat</span>
-        </div>
-        <a href="{{ route('transactions.create') }}" class="btn btn-primary" id="btn-create-transaction">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            Catat Transaksi Baru
-        </a>
+        <h3>
+            Transaksi
+            @if(!Auth::user()->isAdmin())
+            <span style="font-size: 12px; font-weight: normal; color: #888;">(milik Anda)</span>
+            @endif
+        </h3>
+        <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-sm" id="btn-create-transaction">+ Catat Baru</a>
     </div>
 
     <div class="card-body">
-        <!-- Filter bar -->
-        <form action="{{ route('transactions.index') }}" method="GET" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
-            <div style="flex: 1; min-width: 240px;">
-                <input type="text" name="search" class="form-control" placeholder="Cari nama barang atau kode SKU..." value="{{ $search ?? '' }}">
+        <form action="{{ route('transactions.index') }}" method="GET" style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <div style="flex: 1; min-width: 200px;">
+                <input type="text" name="search" class="form-control" placeholder="Cari nama / SKU..." value="{{ $search ?? '' }}">
             </div>
-
-            <div style="min-width: 180px;">
+            <div style="min-width: 140px;">
                 <select name="type" class="form-select">
-                    <option value="">Semua Jenis Mutasi</option>
-                    <option value="in" {{ ($type ?? '') === 'in' ? 'selected' : '' }}>📥 Barang Masuk (IN)</option>
-                    <option value="out" {{ ($type ?? '') === 'out' ? 'selected' : '' }}>📤 Barang Keluar (OUT)</option>
+                    <option value="">Semua Jenis</option>
+                    <option value="in" {{ ($type ?? '') === 'in' ? 'selected' : '' }}>Masuk</option>
+                    <option value="out" {{ ($type ?? '') === 'out' ? 'selected' : '' }}>Keluar</option>
                 </select>
             </div>
-
-            <button type="submit" class="btn btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                Filter
-            </button>
-
+            <button type="submit" class="btn btn-secondary">Filter</button>
             @if(!empty($search) || !empty($type))
-            <a href="{{ route('transactions.index') }}" class="btn btn-secondary" title="Reset Filter">Reset</a>
+            <a href="{{ route('transactions.index') }}" class="btn btn-secondary">Reset</a>
             @endif
         </form>
 
@@ -52,67 +37,47 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th style="width: 60px;">#</th>
+                        <th style="width: 50px;">#</th>
                         <th>Tanggal</th>
-                        <th>Kode SKU</th>
-                        <th>Nama Produk</th>
+                        <th>SKU</th>
+                        <th>Produk</th>
                         <th>Kategori</th>
-                        <th style="text-align: center;">Jenis Mutasi</th>
+                        <th style="text-align: center;">Jenis</th>
                         <th style="text-align: right;">Jumlah</th>
                         <th>Catatan</th>
-                        <th>Petugas Pelapor</th>
+                        <th>Petugas</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($transactions as $tx)
                     <tr>
                         <td>{{ $loop->iteration + ($transactions->currentPage() - 1) * $transactions->perPage() }}</td>
-                        <td style="font-weight: 600; color: #1e293b;">
-                            {{ \Carbon\Carbon::parse($tx->transaction_date)->format('d/m/Y') }}
-                        </td>
-                        <td>
-                            <code style="background: #f1f5f9; padding: 2px 7px; border-radius: 4px; font-weight: 700; color: #334155; font-size: 0.8rem;">
-                                {{ $tx->product->sku ?? '-' }}
-                            </code>
-                        </td>
-                        <td>
-                            <strong style="color: #0f172a;">{{ $tx->product->name ?? 'Produk Dihapus' }}</strong>
-                        </td>
-                        <td>
-                            <span class="badge badge-primary">
-                                {{ $tx->product->category->name ?? '-' }}
-                            </span>
-                        </td>
+                        <td style="font-weight: 600;">{{ \Carbon\Carbon::parse($tx->transaction_date)->format('d/m/Y') }}</td>
+                        <td><code>{{ $tx->product->sku ?? '-' }}</code></td>
+                        <td><strong>{{ $tx->product->name ?? '-' }}</strong></td>
+                        <td>{{ $tx->product->category->name ?? '-' }}</td>
                         <td style="text-align: center;">
                             @if($tx->type === 'in')
-                            <span class="badge badge-success">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-                                Masuk (IN)
-                            </span>
+                            <span class="badge badge-success">Masuk</span>
                             @else
-                            <span class="badge badge-danger">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
-                                Keluar (OUT)
-                            </span>
+                            <span class="badge badge-danger">Keluar</span>
                             @endif
                         </td>
                         <td style="text-align: right;">
-                            <strong style="font-size: 0.95rem; {{ $tx->type === 'in' ? 'color: #059669;' : 'color: #dc2626;' }}">
-                                {{ $tx->type === 'in' ? '+' : '-' }}{{ $tx->quantity }} unit
+                            <strong style="{{ $tx->type === 'in' ? 'color: #155724;' : 'color: #721c24;' }}">
+                                {{ $tx->type === 'in' ? '+' : '-' }}{{ $tx->quantity }}
                             </strong>
                         </td>
-                        <td style="color: #64748b; font-size: 0.82rem; max-width: 220px;">
-                            {{ $tx->note ?: '-' }}
-                        </td>
+                        <td style="color: #888; font-size: 12px;">{{ $tx->note ?: '-' }}</td>
                         <td>
-                            <div style="font-weight: 600; color: #334155;">{{ $tx->user->name ?? 'User' }}</div>
-                            <span style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">{{ $tx->user->role ?? '' }}</span>
+                            {{ $tx->user->name ?? '-' }}
+                            <span style="font-size: 10px; color: #aaa; text-transform: uppercase;">{{ $tx->user->role ?? '' }}</span>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8;">
-                            Belum ada riwayat transaksi yang tercatat.
+                        <td colspan="9" style="text-align: center; padding: 30px; color: #999;">
+                            Belum ada transaksi.
                         </td>
                     </tr>
                     @endforelse
@@ -120,7 +85,7 @@
             </table>
         </div>
 
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 16px;">
             {{ $transactions->links() }}
         </div>
     </div>

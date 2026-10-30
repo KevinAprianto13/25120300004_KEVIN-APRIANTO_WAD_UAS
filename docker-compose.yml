@@ -53,6 +53,22 @@ services:
       timeout: 5s
       retries: 5
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: gudangku_pma
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: GudangKu@DB2024
+    networks:
+      - gudangku_network
+    depends_on:
+      db:
+        condition: service_healthy
+
 networks:
   gudangku_network:
     driver: bridge

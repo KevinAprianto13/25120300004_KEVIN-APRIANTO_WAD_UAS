@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -10,7 +8,7 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
-      - ./storage:/var/www/storage
+      - vendor_data:/var/www/vendor
     networks:
       - gudangku_network
     depends_on:
@@ -45,7 +43,6 @@ services:
       MYSQL_PASSWORD: GudangKu@DB2024
     volumes:
       - gudangku_dbdata:/var/lib/mysql
-      - ./gudangku.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
     networks:
@@ -62,4 +59,6 @@ networks:
 
 volumes:
   gudangku_dbdata:
+    driver: local
+  vendor_data:
     driver: local
